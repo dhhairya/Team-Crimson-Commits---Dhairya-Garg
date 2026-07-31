@@ -1,74 +1,284 @@
 # 🌿 AI-Based Crop Treatment Recommendation System
 
-Upload a crop leaf photo. A vision model diagnoses the disease and severity, then a ReAct agent
-checks the farmer's live local weather and returns the chemical, the dosage, and whether it is
-safe to spray right now — colour-coded Red / Yellow / Green.
+An AI-powered crop disease diagnosis and treatment recommendation platform that combines **computer vision**, **LLM reasoning**, and **real-time weather analysis** to help farmers make informed spraying decisions.
 
-## How it works
+Users simply upload a crop leaf image, and the system:
+1. Detects the crop disease using a vision model.
+2. Estimates the severity of the infection.
+3. Fetches live weather conditions for the farmer's location.
+4. Uses a ReAct AI agent to recommend the most suitable treatment, dosage, and spraying schedule.
+5. Displays a **Green / Yellow / Red** safety indicator based on current weather conditions.
 
+---
+
+## 🚀 Features
+
+- 📷 AI-powered crop disease detection from leaf images
+- 🌱 Disease severity estimation
+- 🌦️ Real-time weather integration using Open-Meteo (No API key required)
+- 🤖 ReAct AI Agent for intelligent treatment planning
+- 💊 Chemical recommendation with dosage instructions
+- ⏰ Best spraying time recommendation
+- 🟢🟡🔴 Color-coded spray safety status
+- 📊 Interactive Streamlit dashboard
+- ⚡ FastAPI backend
+
+---
+
+# 🏗️ System Architecture
+
+```text
+                    Upload Leaf Image
+                            │
+                            ▼
+          ┌────────────────────────────┐
+          │ Vision Model (OpenRouter)  │
+          │ Disease Detection          │
+          │ Severity Estimation        │
+          └────────────────────────────┘
+                            │
+                            ▼
+              { Disease, Severity (%) }
+                            │
+                            ▼
+         ┌─────────────────────────────────┐
+         │ ReAct Agent (DeepSeek R1)       │
+         │                                 │
+         │ • Fetch Live Weather            │
+         │ • Search Agricultural Data      │
+         │ • Reason Over Results           │
+         └─────────────────────────────────┘
+                  │                 │
+                  ▼                 ▼
+        Open-Meteo API        Tavily Search (Optional)
+                  │
+                  ▼
+      Treatment Recommendation Engine
+                  │
+                  ▼
+ ┌────────────────────────────────────────────┐
+ │ Recommended Chemical                       │
+ │ Recommended Dosage                         │
+ │ Safe to Spray? (Yes / No)                  │
+ │ Best Spraying Window                       │
+ │ Red / Yellow / Green Indicator             │
+ └────────────────────────────────────────────┘
 ```
-leaf photo ──► vision model (OpenRouter)  ──► {disease, severity %}
-                                                    │
-                                                    ▼
-                          ReAct agent (DeepSeek R1) ──► get_weather (Open-Meteo, no API key)
-                                                    └─► web_search  (Tavily, optional)
-                                                    │
-                                                    ▼
-                                    {chemical, dosage, spray_now, best window}
+
+---
+
+# 🛠️ Tech Stack
+
+| Component | Technology |
+|-----------|------------|
+| Backend | FastAPI |
+| Frontend | Streamlit |
+| Vision Model | OpenRouter Vision Models |
+| AI Agent | DeepSeek R1 |
+| Weather API | Open-Meteo |
+| Web Search | Tavily (Optional) |
+| Language | Python 3.13 |
+
+---
+
+# 📂 Project Structure
+
+```text
+.
+├── backend
+│   ├── agent.py          # ReAct agent logic
+│   ├── llm.py            # OpenRouter API wrapper
+│   ├── main.py           # FastAPI server
+│   ├── net.py            # Networking utilities
+│   ├── prompts.py        # Prompt templates
+│   ├── tools.py          # Weather & Search tools
+│   ├── vision.py         # Disease detection
+│   └── requirements.txt
+│
+├── frontend
+│   └── app.py            # Streamlit Dashboard
+│
+├── run.sh
+├── setup.sh
+└── README.md
 ```
 
-## Setup
+---
+
+# ⚙️ Installation
+
+Clone the repository
 
 ```bash
-./setup.sh                    # creates .venv and installs everything (once)
-# then add your OPENROUTER_API_KEY to backend/.env
+git clone <repository-url>
+cd crop-treatment-ai
 ```
 
-## Run
+Create the virtual environment and install dependencies
 
 ```bash
-./run.sh                      # starts the API and the dashboard together
+./setup.sh
 ```
 
-Both run from the shared `.venv` at the repo root. Ports default to 8000 (API) and 8501 (UI),
-and automatically shift up if those are busy — the URLs are printed on startup. Ctrl-C stops both.
-Override with `BACKEND_PORT=9000 FRONTEND_PORT=9501 ./run.sh`.
+Add your API key
 
-Open the printed frontend URL, set the city and state in the sidebar, upload a leaf photo,
-and click **Analyze Leaf**.
+```text
+backend/.env
 
-<details>
-<summary>Running the two services manually</summary>
+OPENROUTER_API_KEY=your_api_key
+```
+
+---
+
+# ▶️ Running the Application
+
+Start both the backend and frontend together:
 
 ```bash
-cd backend  && ../.venv/bin/uvicorn main:app --reload    # terminal 1
-cd frontend && ../.venv/bin/streamlit run app.py         # terminal 2
+./run.sh
 ```
-</details>
 
-## Quick checks
+By default:
+
+| Service | Port |
+|----------|------|
+| FastAPI Backend | 8000 |
+| Streamlit Frontend | 8501 |
+
+If either port is already in use, the application automatically selects the next available port.
+
+You can also specify custom ports:
+
+```bash
+BACKEND_PORT=9000 FRONTEND_PORT=9501 ./run.sh
+```
+
+---
+
+## Running Services Separately
+
+Backend
+
+```bash
+cd backend
+../.venv/bin/uvicorn main:app --reload
+```
+
+Frontend
+
+```bash
+cd frontend
+../.venv/bin/streamlit run app.py
+```
+
+---
+
+# 🌾 How to Use
+
+1. Launch the application.
+2. Open the Streamlit dashboard.
+3. Select your **City** and **State**.
+4. Upload a crop leaf image.
+5. Click **Analyze Leaf**.
+6. Review the AI-generated diagnosis and treatment recommendations.
+
+The system provides:
+
+- Disease Name
+- Disease Severity
+- Recommended Chemical
+- Recommended Dosage
+- Spray Safety Status
+- Best Time to Spray
+- AI Agent Reasoning Trace
+
+---
+
+# 🧪 API Endpoints
+
+### Health Check
 
 ```bash
 curl localhost:8000/health
-cd backend && PYTHONPATH=. ../.venv/bin/python -c "from tools import get_weather; print(get_weather('Nashik','Maharashtra'))"
 ```
 
-The weather check needs no API key — Open-Meteo is free and unauthenticated.
+### Analyze Crop Leaf
 
-## Layout
+```
+POST /analyze
+```
 
-| Path | What it does |
-|---|---|
-| `backend/main.py` | FastAPI, `POST /analyze` (image + city + state) |
-| `backend/vision.py` | Stage 1 — leaf photo to disease + severity JSON |
-| `backend/agent.py` | Stage 2 — the ReAct loop (~50 lines, no framework) |
-| `backend/tools.py` | `get_weather` (Open-Meteo), `web_search` (Tavily) + tool schemas |
-| `backend/prompts.py` | Both system prompts and the output JSON contract |
-| `backend/llm.py` | OpenRouter call + JSON extraction |
-| `frontend/app.py` | Streamlit dashboard with colour-coded cards and the agent trace |
+**Input**
 
-## Notes
+- Leaf Image
+- City
+- State
 
-- `TAVILY_API_KEY` is optional. Without it, `web_search` returns a "not available" note and the
-  agent falls back on its own knowledge — the demo still runs.
-- Swap models via `.env` if one is rate-limited, e.g. `AGENT_MODEL=moonshotai/kimi-k2`.
+**Response**
+
+```json
+{
+  "disease": "Early Blight",
+  "severity": 42,
+  "chemical": "Mancozeb",
+  "dosage": "2 g/L",
+  "spray_now": true,
+  "best_window": "Tomorrow 7 AM - 9 AM",
+  "status": "GREEN"
+}
+```
+
+---
+
+# ✅ Quick Test
+
+Test weather integration
+
+```bash
+cd backend
+
+PYTHONPATH=. ../.venv/bin/python -c \
+"from tools import get_weather; print(get_weather('Nashik','Maharashtra'))"
+```
+
+No API key is required for Open-Meteo.
+
+---
+
+# 🔧 Configuration
+
+Environment variables
+
+```text
+OPENROUTER_API_KEY=xxxxxxxxxxxx
+TAVILY_API_KEY=xxxxxxxxxxxx      # Optional
+AGENT_MODEL=deepseek/deepseek-r1
+VISION_MODEL=<vision-model>
+```
+
+If Tavily is not configured, the AI agent falls back to its internal knowledge while still providing recommendations.
+
+You can also switch models using:
+
+```text
+AGENT_MODEL=moonshotai/kimi-k2
+```
+
+---
+
+# 🌟 Future Improvements
+
+- 🌍 Multi-language support
+- 📍 GPS-based automatic location detection
+- 🌿 Multiple crop support
+- 📈 Disease history tracking
+- 📊 Farmer analytics dashboard
+- 🛰️ Satellite and weather forecast integration
+- 📱 Mobile application
+- 🎙️ Voice assistant for farmers
+
+---
+
+# 📜 License
+
+This project is developed for educational, research, and demonstration purposes.
